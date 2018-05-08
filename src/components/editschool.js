@@ -9,7 +9,13 @@ const CLASSIFICATIONS = [ { display: 'AAAA', id: 'AAAA' }, { display: 'AAA', id:
 
 const FIELDS = {
     'school' : { type: 'input', label: 'Name' },
-    'coach1': { type: 'input', label: 'Head Coach (girls)' }
+    'size' : { type: 'input', label: 'Classification' },
+    'coachid1': { type: 'input', label: 'Head Coach (girls)' },
+    'coachid2': { type: 'input', label: 'Assistant Coach (girls)' },
+    'coachid3': { type: 'input', label: 'Diving Coach (girls)' },
+    'coachid4': { type: 'input', label: 'Head Coach (boys)' },
+    'coachid5': { type: 'input', label: 'Assistant Coach (girls)' },
+    'coachid6': { type: 'input', label: 'Diving Coach (girls)' }
 };
 
 class EditSchool extends React.Component {
@@ -37,7 +43,7 @@ class EditSchool extends React.Component {
                     {...field.input}
                 >
                 {children && !_.isEmpty(children) && children.map((value) => {
-                    return ( <option key={value.id} value={value.id}>{value.display}</option> );
+                    return ( <option key={value.id} value={value.id} disabled={value.disabled}>{value.display}</option> );
                 })}
                 </field.type>
                 <div className="text-help">
@@ -59,21 +65,28 @@ class EditSchool extends React.Component {
             return <div>Loading...</div>;
         }
 
-        const userlabels = _.values(users).map( value => {
+        let userlabels = _.values(users).map( value => {
             return { id: value.userid, display: `${value.name} (${value.affiliation})` }
         });
 
+        //this enables all lists have a default setting
+        const empty = { id: null, display: ' -- select an option -- ',  disabled: 'disabled'};
+        userlabels.unshift(empty);
+
+        //coach dropdowns are all formatted the same
+        const coaches = _.keys(FIELDS).filter(coach => {
+            return (coach.startsWith('coach'));
+        })
         return (
             <form onSubmit={handleSubmit(this.onSubmit.bind(this))}>
                 <h2>Edit School</h2>
-                <Field name="school" type="input" component={ this.renderField } label="School"/>
-                <Field name="size" type="select" component={ this.renderField } children={ CLASSIFICATIONS } label="Classification" />
-                <Field name="coachid1" type="select" component={ this.renderField } label="Head Coach (girls)" children ={ userlabels }/>
-                <Field name="coachid2" type="select" component={ this.renderField } label="Assistant Coach (girls)" children ={ userlabels }/>
-                <Field name="coachid3" type="select" component={ this.renderField } label="Diving Coach (girls)" children ={ userlabels }/>
-                <Field name="coachid4" type="select" component={ this.renderField } label="Head Coach (boys)" children ={ userlabels }/>
-                <Field name="coachid5" type="select" component={ this.renderField } label="Assistant Coach (boys)" children ={ userlabels }/>
-                <Field name="coachid6" type="select" component={ this.renderField } label="Diving Coach (boys)" children ={ userlabels }/>
+                <Field name="school" type="input" component={ this.renderField } label={FIELDS["school"].label} />
+                <Field name="size" type="select" component={ this.renderField } children={ CLASSIFICATIONS } label={FIELDS["size"].label} />
+                {coaches.map(coach => {
+                    return (
+                        <Field key={coach} name={coach} type="select" component={ this.renderField } label={FIELDS[coach].label} children ={ userlabels }/>
+                    );
+                })}
                 <button type="submit" className="btn btn-primary">Submit</button>
                 <Link to={`/schools/${school.size}`} className="btn btn-danger">Cancel</Link>
             </form>
