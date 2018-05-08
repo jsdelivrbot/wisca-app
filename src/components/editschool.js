@@ -1,22 +1,23 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { fetchSchools, fetchSchool, editSchool } from '../actions';
+import { fetchSchool, editSchool, fetchUsers } from '../actions';
 import _ from 'lodash';
 import { Field, reduxForm } from 'redux-form';
 import { Link } from 'react-router-dom';
 
+const CLASSIFICATIONS = [ { display: 'AAAA', id: 'AAAA' }, { display: 'AAA', id: 'AAA' }, { display: 'AA', id: 'AA' } ];
+
 const FIELDS = {
     'school' : { type: 'input', label: 'Name' },
-    'size': { type: 'input', label: 'Classification' },
     'coach1': { type: 'input', label: 'Head Coach (girls)' }
-}
+};
 
 class EditSchool extends React.Component {
 
     componentDidMount() {
         const { schoolid } = this.props.match.params;
         this.props.fetchSchool(schoolid);
-        //this.props.initialize(this.props.school);
+        this.props.fetchUsers();
     }
 
     onSubmit(values) {
@@ -26,16 +27,19 @@ class EditSchool extends React.Component {
     }
 
     renderField(field) {
-        const { meta: { touched, error } } = field;
+        const { children, meta: { touched, error } } = field;
         const className = `form-group ${touched && error ? 'has-danger' : ''}`;
         return (
             <div className={ className } >
                 <label>{field.label}</label>
-                <field.type s
+                <field.type
                     className="form-control"
-                    type="text" 
                     {...field.input}
-                />
+                >
+                {children && !_.isEmpty(children) && children.map((value) => {
+                    return ( <option key={value.id} value={value.id}>{value.display}</option> );
+                })}
+                </field.type>
                 <div className="text-help">
                     {touched ? error : ''}
                 </div>
@@ -43,46 +47,50 @@ class EditSchool extends React.Component {
         );
     }
 
-    render() {
+    componentWillReceiveProps(newProps) {
+        if (newProps.pristine) {
+            this.props.initialize(newProps.school);
+        }
+    }
 
-        const { school, handleSubmit } = this.props;
-        
-        if (!school) {
+    render() {
+        const { school, handleSubmit, users } = this.props;
+        if (!school || !users) {
             return <div>Loading...</div>;
         }
 
-        const output = _.map(FIELDS, (value, key) => ({
-            key, ...value
-        }));
+        const userlabels = _.values(users).map( value => {
+            return { id: value.userid, display: `${value.name} (${value.affiliation})` }
+        });
 
-        console.dir(output);
-        //this.props.initialize(school);
         return (
             <form onSubmit={handleSubmit(this.onSubmit.bind(this))}>
                 <h2>Edit School</h2>
-                { _.each(output, (field, key) => {
-/*
-                    return (
-                        <Field
-                            label={ field.label }
-                            key={ key }
-                            type={ field.type }
-                            name={ key }
-                            component={ this.renderField }
-                        />
-                    );
-*/
-                })}
-
+                <Field name="school" type="input" component={ this.renderField } label="School"/>
+                <Field name="size" type="select" component={ this.renderField } children={ CLASSIFICATIONS } label="Classification" />
+                <Field name="coachid1" type="select" component={ this.renderField } label="Head Coach (girls)" children ={ userlabels }/>
+                <Field name="coachid2" type="select" component={ this.renderField } label="Assistant Coach (girls)" children ={ userlabels }/>
+                <Field name="coachid3" type="select" component={ this.renderField } label="Diving Coach (girls)" children ={ userlabels }/>
+                <Field name="coachid4" type="select" component={ this.renderField } label="Head Coach (boys)" children ={ userlabels }/>
+                <Field name="coachid5" type="select" component={ this.renderField } label="Assistant Coach (boys)" children ={ userlabels }/>
+                <Field name="coachid6" type="select" component={ this.renderField } label="Diving Coach (boys)" children ={ userlabels }/>
                 <button type="submit" className="btn btn-primary">Submit</button>
-                <Link to="/" className="btn btn-danger">Cancel</Link>
+                <Link to={`/schools/${school.size}`} className="btn btn-danger">Cancel</Link>
             </form>
         );
     }
 }
 
-function mapStateToProps({ schools }, ownProps) {
-    return { school: schools[ownProps.match.params.schoolid] };
+function mapStateToProps(state, ownProps) {
+    const { schools, users } = state;
+    let obj = {};
+    if (schools) {
+        obj = { school: schools[ownProps.match.params.schoolid] };
+    }
+    if (users) {
+        obj = { ...obj, users : users };
+    }
+    return obj;
 }
 
 function validate(values) {
@@ -100,98 +108,6 @@ export default reduxForm({
     fields: _.keys(FIELDS),
     form: 'SchoolForm'
 })(
-    connect(mapStateToProps, { fetchSchool, editSchool })(EditSchool)
+    connect(mapStateToProps, { fetchSchool, editSchool, fetchUsers })(EditSchool)
 );
 
-/*
-import React, { Component } from 'react';
-import { Field, reduxForm } from 'redux-form';
-import { Link } from 'react-router-dom';
-import { connect } from 'react-redux';
-import { createPost } from '../actions';
-
-const FIELDS = {
-    'title' : {
-        type: 'input',
-        label: 'Title'
-    },
-    'categories': {
-        type: 'input',
-        label: 'Enter some categories'
-    },
-    'content': {
-        type: 'textarea',
-        label: 'Post contents'
-    }
-}
-
-class PostsNew extends Component {
-
-    renderField(field) {
-        const { meta: { touched, error } } = field;
-        const className = `form-group ${touched && error ? 'has-danger' : ''}`;
-
-        return (
-            <div className={ className } >
-                <label>{field.label}</label>
-                <field.type
-                    className="form-control"
-                    type="text"
-                    {...field.input}
-                />
-                <div className="text-help">
-                    {touched ? error : ''}
-                </div>
-            </div>
-        );
-    }
-
-    onSubmit(values) {
-        
-        this.props.createPost(values, () => {
-            this.props.history.push('/');
-        });
-    }
-
-    render() {
-
-        const { handleSubmit } = this.props;
-        return (
-            <form onSubmit={handleSubmit(this.onSubmit.bind(this))}>
-                { Object.entries(FIELDS).map((obj, i) => {
-                    return (
-                        <Field
-                            label={ obj[1].label }
-                            type={ obj[1].type }
-                            name={ obj[0] }
-                            component={ this.renderField }
-                        />
-                    );
-                })}
-                <button type="submit" className="btn btn-primary">Submit</button>
-                <Link to="/" className="btn btn-danger">Cancel</Link>
-            </form>
-        );
-    }
-
-}
-
-function validate(values) {
-    const errors = {};
-    _.each(FIELDS, (type, field) => {
-        if (!values[field]) {
-            errors[field] = `Enter ${field}`;
-        }
-    })
-    return errors;
-}
-
-export default reduxForm({
-    validate,
-    fields: _.keys(FIELDS),
-    form: 'PostsNewForm'
-})(
-    connect(null, { createPost })(PostsNew)
-);
-
-*/

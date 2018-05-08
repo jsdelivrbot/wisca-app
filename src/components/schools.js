@@ -15,7 +15,7 @@ class Schools extends React.Component {
         return _.map(_.sortBy(this.props.schools, 'school'), school => {
             return (
                 <li className='list-group-item' key={school.schoolid}>
-                    <Link to={`/schools/${school.schoolid}`}>
+                    <Link to={`/school/${school.schoolid}`}>
                         {school.school}
                     </Link>
                 </li>
@@ -31,7 +31,7 @@ class Schools extends React.Component {
                         Add a School
                     </Link>
                 </div>
-                <h3>Schools</h3>
+                <h2>Schools</h2>
                 <ul className="list-group">
                     { this.renderSchools() } 
                 </ul>

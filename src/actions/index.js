@@ -2,6 +2,7 @@ import axios from 'axios';
 
 export const FETCH_SCHOOLS = 'fetch_schools';
 export const FETCH_SCHOOL = 'fetch_school';
+export const FETCH_USERS = 'fetch_users';
 
 const ROOT_URL = 'http://localhost:3000/api/v1';
 
@@ -9,6 +10,14 @@ export function fetchSchools(classification) {
     const request = axios.get(`${ROOT_URL}/schools/${classification}`);
     return {
         type: FETCH_SCHOOLS,
+        payload: request
+    };
+}
+
+export function fetchUsers(type = 'active') {
+    const request = axios.get(`${ROOT_URL}/users/${type}`);
+    return {
+        type: FETCH_USERS,
         payload: request
     };
 }
