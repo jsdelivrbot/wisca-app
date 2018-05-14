@@ -3,6 +3,8 @@ import axios from 'axios';
 export const FETCH_SCHOOLS = 'fetch_schools';
 export const FETCH_SCHOOL = 'fetch_school';
 export const FETCH_USERS = 'fetch_users';
+export const FETCH_ATHLETES = 'fetch_athletes';
+export const EDIT_SCHOOL = 'edit_school';
 
 const ROOT_URL = 'http://localhost:3000/api/v1';
 
@@ -22,6 +24,14 @@ export function fetchUsers(type = 'active') {
     };
 }
 
+export function fetchAthletes(schoolid, year = 'current') {
+    const request = axios.get(`${ROOT_URL}/athletes/${schoolid}/${year}`);
+    return {
+        type: FETCH_ATHLETES,
+        payload: request
+    };
+}
+
 export function fetchSchool(schoolid) {
     const request = axios.get(`${ROOT_URL}/school/${schoolid}`);
     return {
@@ -30,7 +40,7 @@ export function fetchSchool(schoolid) {
     };
 }
 
-export function editSchool(schoolid, values) {
+export function editSchool(schoolid, values, callback) {
     const request = axios.put(`${ROOT_URL}/school/${schoolid}`, values)
         .then(() => callback());
     return {

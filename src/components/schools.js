@@ -4,11 +4,21 @@ import { fetchSchools } from '../actions';
 import _ from 'lodash';
 import { Link } from 'react-router-dom';
 
+export const CLASSIFICATIONS = [ { id: 'AAAA', display: 'AAAA' }, { display: 'AAA', id: 'AAA' }, { key: 'AA', display: 'AA', id: 'AA' } ];
+
 class Schools extends React.Component {
 
     componentDidMount() {
         const { classification } = this.props.match.params;
         this.props.fetchSchools(classification);
+        window.scrollTo(0, 0);
+    }
+
+    componentWillReceiveProps(newProps) {
+        const { classification } = newProps.match.params;
+        if (classification != this.props.match.params.classification) {
+            this.props.fetchSchools(classification);
+        }
     }
 
     renderSchools() {
@@ -32,7 +42,19 @@ class Schools extends React.Component {
                     </Link>
                 </div>
                 <h2>Schools</h2>
-                <ul className="list-group">
+                <h4>
+                    {[{id: 'all', display: 'All'}, ...CLASSIFICATIONS].map(classification => {
+                        return (
+                            <span key={classification.id}>
+                                {classification.id == 'all' ? '' : ' | '} 
+                                {classification.id != this.props.match.params.classification ? 
+                                    <Link to={`/schools/${classification.id}`}>{classification.display}</Link> :
+                                    classification.display}
+                            </span>
+                        );
+                    })}
+                </h4>
+                <ul  key={this.props.match.params.classification} className="list-group">
                     { this.renderSchools() } 
                 </ul>
             </div>
